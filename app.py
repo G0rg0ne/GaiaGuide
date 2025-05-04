@@ -10,12 +10,12 @@ from datetime import datetime
 load_dotenv()
 
 # Initialize OpenAI client
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Set page config
+# Set page config with favicon
 st.set_page_config(
     page_title="Travel Planning Assistant",
-    page_icon="✈️",
+    page_icon="images/favicon.png",  # Path to your favicon in the images folder
     layout="wide"
 )
 
@@ -28,62 +28,34 @@ st.markdown("""
     .stButton>button {
         width: 100%;
     }
+    .logo-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 1rem;
+        width: 100%;
+    }
+    .logo-container img {
+        border-radius: 50%;
+        object-fit: cover;
+        padding: 5px;
+        background-color: #f0f2f6;
+        margin: 0 auto;
+        display: block;
+    }
     </style>
     """, unsafe_allow_html=True)
-
-def get_weather_data(city, date):
-    # This is a placeholder for weather API integration
-    # You would replace this with actual API calls to a weather service
-    return {
-        "temperature": "20°C",
-        "conditions": "Sunny",
-        "humidity": "60%"
-    }
-
-def get_flight_data(origin, destination, date):
-    # This is a placeholder for flight API integration
-    # You would replace this with actual API calls to a flight service
-    return {
-        "price": "$300",
-        "airline": "Example Airlines",
-        "departure_time": "10:00 AM"
-    }
-
-def generate_travel_plan(destination, start_date, end_date, preferences):
-    # Create a prompt for the OpenAI API
-    prompt = f"""
-    Create a detailed travel plan for {destination} from {start_date} to {end_date}.
-    Preferences: {preferences}
-    
-    Include:
-    1. Daily itinerary
-    2. Recommended activities
-    3. Local transportation options
-    4. Dining recommendations
-    5. Budget considerations
-    
-    Format the response in a clear, organized manner.
-    """
-    
-    try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a helpful travel planning assistant."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=1000
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        return f"Error generating travel plan: {str(e)}"
 
 # Main Streamlit interface
 st.title("✈️ Travel Planning Assistant")
 
 # Sidebar for user inputs
 with st.sidebar:
+    # Add website logo in sidebar
+    st.markdown('<div class="logo-container">', unsafe_allow_html=True)
+    st.image("images/logo.png", width=150, use_column_width=False)  # Adjusted width for sidebar
+    st.markdown('</div>', unsafe_allow_html=True)
+    
     st.header("Trip Details")
     destination = st.text_input("Destination")
     start_date = st.date_input("Start Date")
@@ -131,3 +103,51 @@ st.markdown("""
     
     To get started, fill in your trip details in the sidebar and click "Generate Travel Plan".
     """) 
+
+def get_weather_data(city, date):
+    # This is a placeholder for weather API integration
+    # You would replace this with actual API calls to a weather service
+    return {
+        "temperature": "20°C",
+        "conditions": "Sunny",
+        "humidity": "60%"
+    }
+
+def get_flight_data(origin, destination, date):
+    # This is a placeholder for flight API integration
+    # You would replace this with actual API calls to a flight service
+    return {
+        "price": "$300",
+        "airline": "Example Airlines",
+        "departure_time": "10:00 AM"
+    }
+
+def generate_travel_plan(destination, start_date, end_date, preferences):
+    # Create a prompt for the OpenAI API
+    prompt = f"""
+    Create a detailed travel plan for {destination} from {start_date} to {end_date}.
+    Preferences: {preferences}
+    
+    Include:
+    1. Daily itinerary
+    2. Recommended activities
+    3. Local transportation options
+    4. Dining recommendations
+    5. Budget considerations
+    
+    Format the response in a clear, organized manner.
+    """
+    
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful travel planning assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1000
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"Error generating travel plan: {str(e)}" 
