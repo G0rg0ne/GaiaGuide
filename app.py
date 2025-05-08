@@ -17,6 +17,15 @@ load_dotenv()
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# Initialize session state for tracking if results are shown
+if 'show_results' not in st.session_state:
+    st.session_state.show_results = False
+
+def reset_page():
+    """Reset the page state and clear results"""
+    st.session_state.show_results = False
+    st.experimental_rerun()
+
 def get_weather_data(city, start_date, end_date):
     try:
         logger.info(f"Requesting weather data for city: {city} from {start_date} to {end_date}")
@@ -116,6 +125,7 @@ st.markdown("""
         align-items: center;
         margin-bottom: 1rem;
         width: 100%;
+        padding-left: 2rem;
     }
     .logo-container img {
         border-radius: 50%;
@@ -146,7 +156,7 @@ main_content = st.empty()
 with st.sidebar:
     # Add website logo in sidebar
     st.markdown('<div class="logo-container">', unsafe_allow_html=True)
-    st.image("images/logo.png", width=150, use_column_width=False)
+    st.image("images/logo.png", width=200, use_column_width=False)
     st.markdown('</div>', unsafe_allow_html=True)
     
     st.header("Trip Details")
@@ -157,6 +167,7 @@ with st.sidebar:
     
     if st.button("Generate Travel Plan"):
         if destination and start_date and end_date:
+            st.session_state.show_results = True
             logger.info(f"Generating travel plan for {destination} from {start_date} to {end_date}")
             with st.spinner("Generating your personalized travel plan..."):
                 # Get weather and flight data
@@ -179,78 +190,91 @@ with st.sidebar:
                 )
                 logger.info("Travel plan generated successfully")
                 
-                # Display results
-                st.success("Travel plan generated successfully!")
+                # Store results in session state
+                st.session_state.weather_data = weather_data
+                st.session_state.flight_data = flight_data
+                st.session_state.travel_plan = travel_plan
+                st.session_state.destination = destination
                 
-                # Replace main content with the travel plan
-                with main_content.container():
-                    st.markdown("## ✈️ Your Personalized Travel Plan")
-                    st.markdown(travel_plan)
-                    
-                    st.markdown("## 🌤️ Weather Information")
-                    
-                    # Display weather summary
-                    if "summary" in weather_data:
-                        st.markdown('<div class="weather-summary">', unsafe_allow_html=True)
-                        st.markdown("### Weather Summary")
-                        col1, col2, col3 = st.columns(3)
-                        
-                        with col1:
-                            st.markdown("#### Temperature")
-                            st.markdown(f"Average: {weather_data['summary']['temperature']['average']}")
-                            st.markdown(f"Range: {weather_data['summary']['temperature']['min']} to {weather_data['summary']['temperature']['max']}")
-                        
-                        with col2:
-                            st.markdown("#### Humidity")
-                            st.markdown(f"Average: {weather_data['summary']['humidity']['average']}")
-                            st.markdown(f"Range: {weather_data['summary']['humidity']['min']} to {weather_data['summary']['humidity']['max']}")
-                        
-                        with col3:
-                            st.markdown("#### Wind")
-                            st.markdown(f"Average: {weather_data['summary']['wind_speed']['average']}")
-                            st.markdown(f"Range: {weather_data['summary']['wind_speed']['min']} to {weather_data['summary']['wind_speed']['max']}")
-                        
-                        st.markdown("#### Most Common Weather Conditions")
-                        for condition in weather_data['summary']['most_common_conditions']:
-                            st.markdown(f"- {condition['condition']} ({condition['days']} days)")
-                        
-                        if "note" in weather_data:
-                            st.markdown(f'<div class="weather-note">{weather_data["note"]}</div>', unsafe_allow_html=True)
-                        
-                        st.markdown('</div>', unsafe_allow_html=True)
-                    
-                    # Display daily forecast
-                    if "forecast" in weather_data and weather_data["forecast"]:
-                        st.markdown("### Daily Weather Details")
-                        forecast_data = []
-                        for day in weather_data["forecast"]:
-                            forecast_data.append({
-                                "Date": day["date"],
-                                "Temperature": day["temperature"],
-                                "Conditions": day["conditions"],
-                                "Humidity": day["humidity"],
-                                "Wind Speed": day["wind_speed"]
-                            })
-                        st.table(forecast_data)
-                    else:
-                        st.warning("Weather forecast data is not available")
-                    
-                    st.markdown("## 🛫 Flight Information")
-                    st.json(flight_data)
+                st.experimental_rerun()
         else:
             logger.warning("Missing required fields in travel plan request")
             st.error("Please fill in all required fields.")
+    
+    # Add reset button below Generate Travel Plan
+    if st.session_state.show_results:
+        st.markdown("---")  # Add a separator
+        if st.button("🔄 Make New Prediction", use_container_width=True):
+            reset_page()
+
+# Display results if they exist
+if st.session_state.show_results:
+    with main_content.container():
+        st.markdown("## ✈️ Your Personalized Travel Plan")
+        st.markdown(st.session_state.travel_plan)
+        
+        st.markdown("## 🌤️ Weather Information")
+        
+        # Display weather summary
+        if "summary" in st.session_state.weather_data:
+            st.markdown('<div class="weather-summary">', unsafe_allow_html=True)
+            st.markdown("### Weather Summary")
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.markdown("#### Temperature")
+                st.markdown(f"Average: {st.session_state.weather_data['summary']['temperature']['average']}")
+                st.markdown(f"Range: {st.session_state.weather_data['summary']['temperature']['min']} to {st.session_state.weather_data['summary']['temperature']['max']}")
+            
+            with col2:
+                st.markdown("#### Humidity")
+                st.markdown(f"Average: {st.session_state.weather_data['summary']['humidity']['average']}")
+                st.markdown(f"Range: {st.session_state.weather_data['summary']['humidity']['min']} to {st.session_state.weather_data['summary']['humidity']['max']}")
+            
+            with col3:
+                st.markdown("#### Wind")
+                st.markdown(f"Average: {st.session_state.weather_data['summary']['wind_speed']['average']}")
+                st.markdown(f"Range: {st.session_state.weather_data['summary']['wind_speed']['min']} to {st.session_state.weather_data['summary']['wind_speed']['max']}")
+            
+            st.markdown("#### Most Common Weather Conditions")
+            for condition in st.session_state.weather_data['summary']['most_common_conditions']:
+                st.markdown(f"- {condition['condition']} ({condition['days']} days)")
+            
+            if "note" in st.session_state.weather_data:
+                st.markdown(f'<div class="weather-note">{st.session_state.weather_data["note"]}</div>', unsafe_allow_html=True)
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Display daily forecast
+        if "forecast" in st.session_state.weather_data and st.session_state.weather_data["forecast"]:
+            st.markdown("### Daily Weather Details")
+            forecast_data = []
+            for day in st.session_state.weather_data["forecast"]:
+                forecast_data.append({
+                    "Date": day["date"],
+                    "Temperature": day["temperature"],
+                    "Conditions": day["conditions"],
+                    "Humidity": day["humidity"],
+                    "Wind Speed": day["wind_speed"]
+                })
+            st.table(forecast_data)
+        else:
+            st.warning("Weather forecast data is not available")
+        
+        st.markdown("## 🛫 Flight Information")
+        st.json(st.session_state.flight_data)
 
 # Initial welcome message
-with main_content.container():
-    st.markdown("""
-        ### Welcome to your AI-powered Travel Planning Assistant!
-        
-        This tool helps you create personalized travel plans using:
-        - AI-powered itinerary generation
-        - Historical weather patterns
-        - Flight information
-        - Local recommendations
-        
-        To get started, fill in your trip details in the sidebar and click "Generate Travel Plan".
-        """) 
+if not st.session_state.show_results:
+    with main_content.container():
+        st.markdown("""
+            ### Welcome to your AI-powered Travel Planning Assistant!
+            
+            This tool helps you create personalized travel plans using:
+            - AI-powered itinerary generation
+            - Historical weather patterns
+            - Flight information
+            - Local recommendations
+            
+            To get started, fill in your trip details in the sidebar and click "Generate Travel Plan".
+            """) 
