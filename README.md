@@ -2,6 +2,10 @@
 
 An AI-powered web application that helps users create personalized travel plans using Streamlit and OpenAI's GPT model. The application provides comprehensive travel planning assistance, including itinerary generation, weather forecasts, and flight information.
 
+## Demo
+
+Try out the live demo at: [http://138.201.89.207:8501/](http://138.201.89.207:8501/)
+
 ## Features
 
 - 🤖 AI-powered travel itinerary generation
