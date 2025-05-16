@@ -6,7 +6,7 @@ An AI-powered web application that helps users create personalized travel plans 
 
 Try out the live demo at: [http://138.201.89.207:8501/](http://138.201.89.207:8501/)
 
-![Travel Planning Assistant UI](images\demo_ui.png)
+![Travel Planning Assistant UI](images/demo_ui.png)
 
 ## Features
 
