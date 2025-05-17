@@ -66,9 +66,16 @@ travel-planning-assistant/
 ├── Dockerfile         # Docker configuration
 ├── docker-compose.yml # Docker Compose configuration
 ├── .env              # Environment variables (create this)
+├── .dockerignore     # Docker ignore file
+├── .gitignore        # Git ignore file
+├── LICENSE           # Project license
 ├── images/           # Static images and assets
 ├── weather_service/  # Weather microservice
 │   ├── app.py       # Weather service implementation
+│   ├── requirements.txt
+│   └── Dockerfile
+├── flight_service/   # Flight information microservice
+│   ├── app.py       # Flight service implementation (in development)
 │   ├── requirements.txt
 │   └── Dockerfile
 └── README.md         # This file
@@ -79,18 +86,23 @@ travel-planning-assistant/
 ### Main Application
 - Streamlit-based web interface
 - Handles user interactions and travel planning
-- Communicates with weather service for forecasts
+- Communicates with weather and flight services
 
 ### Weather Service
 - FastAPI-based microservice
 - Provides real-time weather data
 - Uses OpenWeather API for weather information
 
+### Flight Service
+- FastAPI-based microservice (in development)
+- Will provide flight information and booking capabilities
+- Planned integration with flight booking APIs
+
 ## Dependencies
 
 ### Main Application
 - streamlit==1.32.0
-- openai==1.12.0
+- openai>=1.12.0
 - python-dotenv==1.0.1
 - requests==2.31.0
 - pandas==2.2.1
@@ -116,5 +128,5 @@ This project is licensed under the terms of the license included in the reposito
 - OpenAI for providing the GPT API
 - OpenWeather for weather data
 - Streamlit for the web application framework
-- FastAPI for the weather service
+- FastAPI for the microservices
 - All contributors who have helped improve this project 
