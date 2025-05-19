@@ -11,6 +11,7 @@ services:
       - .:/app
     depends_on:
       - weather_service
+      - flight_service
 
   weather_service:
     build: ./weather_service
@@ -19,4 +20,14 @@ services:
     environment:
       - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}
     volumes:
-      - ./weather_service:/app 
+      - ./weather_service:/app
+
+  flight_service:
+    build: ./flight_service
+    ports:
+      - "8001:8001"
+    environment:
+      - AMADEUS_API_KEY=${AMADEUS_API_KEY}
+      - AMADEUS_API_SECRET=${AMADEUS_API_SECRET}
+    volumes:
+      - ./flight_service:/app 
